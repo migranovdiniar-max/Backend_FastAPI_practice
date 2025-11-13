@@ -1,11 +1,13 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Path
 from pydantic import BaseModel, EmailStr
+from typing import Annotated
+from item_views import router as item_router
+from mypackage.view import router as mypackage_router
+
 
 app = FastAPI()
-
-
-class createUserRequest(BaseModel):
-    email: EmailStr
+app.include_router(item_router)
+app.include_router(mypackage_router)
 
 
 @app.get("/")
@@ -23,13 +25,6 @@ def hello(name: str = "world"):
     }
 
 
-@app.post("/users/")
-def create_user(user_request: createUserRequest = Body(...)):
-    return {
-        "message": "Success",
-        "email": user_request.email
-    }
-
 @app.post("/calc/add/")
 def add(a: int, b: int):
     return {
@@ -37,27 +32,6 @@ def add(a: int, b: int):
     }
     
 
-@app.get("/items/")
-def list_items():
-    return {
-        "items": ["item1", "item2", "item3"]
-    }
 
-
-@app.get("/items/latest/")
-def get_latest_item():
-    return {"item": {
-        "id": "0", 
-        "name": "The latest item"
-    }}
-
-
-@app.get("/items/{item_id}/")
-def get_item_by_id(item_id: str):
-    return {
-        "item": {
-            "id": len(item_id),
-        }
-    }
 
 
