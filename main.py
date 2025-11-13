@@ -1,7 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
+
+
+class createUserRequest(BaseModel):
+    email: EmailStr
+
 
 @app.get("/")
 def hello_index():
@@ -19,10 +24,18 @@ def hello(name: str = "world"):
 
 
 @app.post("/users/")
-def create_user(user: EmailStr):
-    pass
-    
+def create_user(user_request: createUserRequest = Body(...)):
+    return {
+        "message": "Success",
+        "email": user_request.email
+    }
 
+@app.post("/calc/add/")
+def add(a: int, b: int):
+    return {
+        "result": a + b
+    }
+    
 
 @app.get("/items/")
 def list_items():
