@@ -5,6 +5,7 @@ from item_views import router as item_router
 from mypackage.view import router as mypackage_router
 from contextlib import asynccontextmanager
 from core.models import Base, db_helper
+from sqlalchemy import text, inspect
 # -------------------------------------------------------------------------------- 
 
 
