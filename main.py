@@ -3,11 +3,22 @@ from pydantic import BaseModel, EmailStr
 from typing import Annotated
 from item_views import router as item_router
 from mypackage.view import router as mypackage_router
+from contextlib import asynccontextmanager
+from core.models import Base, db_helper
+# -------------------------------------------------------------------------------- 
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with db_helper.engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
 
 
 app = FastAPI()
 app.include_router(item_router)
-app.include_router(mypackage_router)
+app.include_router(mypackage_router)    
 
 
 @app.get("/")
