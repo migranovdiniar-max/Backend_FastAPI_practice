@@ -6,6 +6,8 @@ from mypackage.view import router as mypackage_router
 from contextlib import asynccontextmanager
 from core.models import Base, db_helper
 from sqlalchemy import text, inspect
+from api_v1 import router as api_v1_router
+from core.config import settings
 # -------------------------------------------------------------------------------- 
 
 
@@ -18,6 +20,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(api_v1_router, prefix=settings.api_v1_prefix, tags=["api_v1"])
 app.include_router(item_router)
 app.include_router(mypackage_router)    
 
