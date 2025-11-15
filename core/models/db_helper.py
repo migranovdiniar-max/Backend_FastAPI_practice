@@ -32,6 +32,7 @@ class DataBaseHelper:
         # FastAPI dependency: yield an async session
         async with self.session_factory() as session:
             yield session
+            await session.close()
 
 
 db_helper = DataBaseHelper(url=settings.db_url, echo=settings.db_echo)

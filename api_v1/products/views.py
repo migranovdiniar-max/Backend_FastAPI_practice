@@ -17,7 +17,7 @@ async def get_products(session: AsyncSession = Depends(db_helper.session_depende
 @router.get("/{product_id}/", response_model=Product)
 async def get_product(product_id: int, 
                       session: AsyncSession = Depends(db_helper.session_dependency)):
-    product = await crud.get_products(session=session, product_id=product_id)
+    product = await crud.get_product(session=session, product_id=product_id)
 
     if product is not None:
         return product
@@ -29,3 +29,7 @@ async def get_product(product_id: int,
 async def create_product(product_in: ProductCreate = Body(...), 
                          session: AsyncSession = Depends(db_helper.session_dependency)):
     return await crud.create_product(session=session, product_in=product_in)
+
+
+@router.put("/{product_id}/", response_model=Product)
+async def update_product(product_id: int,  
