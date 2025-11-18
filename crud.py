@@ -6,6 +6,7 @@ from core.models import db_helper, Post, Profile, User
 from sqlalchemy.orm import joinedload, selectinload
 
 from core.models.order import Order
+from core.models.order_product_association import OrderProductAssociation
 from core.models.product import Product
 
 
@@ -223,13 +224,39 @@ async def create_product(session: AsyncSession,
     return product
 
 
+async def demo_get_orders_with_posducts_through_secondary(session: AsyncSession):
+    orders = await get_orders_with_products(session)
+    for order in orders:
+        print(order.id, order.promocode, order.created_at, "products:")
+        for product in order.products: # type: ignore #type: Product
+            print('-', product.id, product.name, product.price)
+
+
+async def get_orders_with_posducts_assoc(session: AsyncSession):
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.products_details).joinedload(OrderProductAssociation.product))
+        .order_by(Order.id)
+    )
+    orders = await session.scalars(stmt)
+    return list(orders)
+
+
+async def demo_get_orders_with_posducts_through_assoc(session: AsyncSession):
+    orders = await get_orders_with_posducts_assoc(session)
+
+    for order in orders:
+        print(order.id, order.promocode, order.created_at, "products:")
+        for order_product_detais in order.products_details:
+            print('-', order_product_detais.product.name, 
+                  order_product_detais.product.price, 
+                  order_product_detais.count)    
+
+
 async def demo_m2m(session: AsyncSession):
     # create_orders_and_products(session=session)
-    orders = await get_orders_with_products(session=session)
-    for order in orders:
-        print("order:", order)
-        for product in order.products:
-            print(" product:", product)
+    # await demo_get_orders_with_posducts_through_assoc(session)
+    
 
 
 async def main():
