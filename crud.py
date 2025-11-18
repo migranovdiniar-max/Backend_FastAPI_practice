@@ -5,6 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import db_helper, Post, Profile, User
 from sqlalchemy.orm import joinedload, selectinload
 
+from core.models.order import Order
+from core.models.product import Product
+
 
 async def create_user(session: AsyncSession, username: str) -> User:
     user = User(username=username)
@@ -121,9 +124,8 @@ async def get_profiles_with_users_and_users_with_posts(session: AsyncSession) ->
         print(" user:", profile.user.posts)
 
 
-async def main():
-    async with db_helper.session_factory() as session:
-        # await create_user(session=session, username="john")
+async def main_relations(session: AsyncSession):
+    # await create_user(session=session, username="john")
         # await create_user(session=session, username="sam")
         user_sam = await get_user_by_username(session=session, username="sam")
         user_john = await get_user_by_username(session=session, username="john")
@@ -149,6 +151,92 @@ async def main():
 
         await get_profiles_with_users_and_users_with_posts(session=session)
 
+
+async def get_orders_with_products(session: AsyncSession) -> list[Order]:
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.products))
+        .order_by(Order.id)
+    )
+    orders = await session.scalars(stmt)
+    for order in orders:
+        print('**' * 10)
+        print("order:", order)
+        for product in order.products:
+            print(" product:", product)
+
+
+async def create_orders_and_products(session: AsyncSession) -> None:
+    order_one = await create_order(session=session)
+    order_promo = await create_order(session=session, promocode="promo")
+
+    mouse = await create_product(session=session,
+                                 name="Mouse",
+                                description="Wireless mouse",
+                                price=25)
+    keyboard = await create_product(session=session,
+                                    name="Keyboard",
+                                    description="Mechanical keyboard",
+                                    price=75)
+    monitor = await create_product(session=session,
+                                   name="Monitor",
+                                   description="4K monitor",
+                                   price=300)
+    
+    order_one = await session.scalar(select(Order)
+                                     .where(Order.id == order_one.id)
+                                     .options(
+                                         selectinload(Order.products)
+                                     ))
+    order_promo = await session.scalar(select(Order)
+                                       .where(Order.id == order_promo.id)
+                                        .options(
+                                             selectinload(Order.products)
+                                        ))
+    
+    order_one.products.append(mouse)
+    order_one.products.append(keyboard)
+    order_promo.products.append(keyboard)
+    order_promo.products.append(monitor)
+
+    await session.commit()
+
+
+async def create_order(session: AsyncSession, promocode: str | None = None) -> None:
+    order = Order(promocode=promocode)
+    session.add(order)
+    await session.commit()
+
+    return order
+
+
+async def create_product(session: AsyncSession, 
+                         name: str,
+                         description: str,
+                         price: int) -> Product:
+    product = Product(
+        name=name,
+        description=description,
+        price=price)
+    session.add(product)
+    await session.commit() 
+    return product
+
+
+async def demo_m2m(session: AsyncSession):
+    # create_orders_and_products(session=session)
+    orders = await get_orders_with_products(session=session)
+    for order in orders:
+        print("order:", order)
+        for product in order.products:
+            print(" product:", product)
+
+
+async def main():
+    async with db_helper.session_factory() as session:
+        # await main_relations(session=session)
+        await demo_m2m(session=session)
+        
 
 if __name__ == "__main__":
     asyncio.run(main())
