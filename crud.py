@@ -256,7 +256,7 @@ async def demo_get_orders_with_posducts_through_assoc(session: AsyncSession):
 async def demo_m2m(session: AsyncSession):
     # create_orders_and_products(session=session)
     # await demo_get_orders_with_posducts_through_assoc(session)
-    
+    pass
 
 
 async def main():
